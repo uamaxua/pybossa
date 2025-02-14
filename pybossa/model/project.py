@@ -30,6 +30,11 @@ from pybossa.model.task_run import TaskRun
 from pybossa.model.category import Category
 from pybossa.model.blogpost import Blogpost
 
+projects_to_users = db.Table(
+    'projects_to_users',
+    db.Column('user_id', Integer, ForeignKey('user.id', ondelete="CASCADE"), primary_key=True),
+    db.Column('project_id', Integer, ForeignKey('project.id', ondelete="CASCADE"), primary_key=True)
+)
 
 class Project(db.Model, DomainObject):
     '''A microtasking Project to which Tasks are associated.
@@ -79,8 +84,10 @@ class Project(db.Model, DomainObject):
     category = relationship(Category)
     blogposts = relationship(Blogpost, cascade='all, delete-orphan', backref='project')
     owners_ids = Column(MutableList.as_mutable(ARRAY(Integer)), default=list())
+    is_restricted = Column(Boolean, nullable=False, default=False)
+    users = relationship('User', secondary='projects_to_users', backref='projects')
 
-    def needs_password(self):
+def needs_password(self):
         return self.get_passwd_hash() is not None
 
     def get_passwd_hash(self):
@@ -128,7 +135,8 @@ class Project(db.Model, DomainObject):
                 'overall_progress', 'short_name', 'created', 'category_id',
                 'long_description', 'last_activity', 'last_activity_raw',
                 'n_task_runs', 'n_results', 'owner', 'updated', 'featured',
-                'owner_id', 'n_completed_tasks', 'n_blogposts', 'owners_ids']
+                'owner_id', 'n_completed_tasks', 'n_blogposts', 'owners_ids',
+                'is_restricted']
 
     @classmethod
     def public_info_keys(self):
