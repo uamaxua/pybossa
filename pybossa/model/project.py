@@ -82,7 +82,7 @@ class Project(db.Model, DomainObject):
     is_private = Column(Boolean, nullable=False, default=False)
     private_users_ids = Column(MutableList.as_mutable(ARRAY(Integer)), default=list())
 
-def needs_password(self):
+    def needs_password(self):
         return self.get_passwd_hash() is not None
 
     def get_passwd_hash(self):
