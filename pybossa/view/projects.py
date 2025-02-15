@@ -281,7 +281,7 @@ def _filter_by_user_access(lookup, category):
     return accessible_projects
 
 def _is_admin_or_owner(user, project):
-    return not user.is_anonymous and (user.id in project.owners_ids or user.admin)
+    return not user.is_anonymous and (user.id in project.get('owners_ids') or user.admin)
 
 @blueprint.route('/new', methods=['GET', 'POST'])
 @login_required
