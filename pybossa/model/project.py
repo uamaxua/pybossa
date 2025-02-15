@@ -16,25 +16,19 @@
 # You should have received a copy of the GNU Affero General Public License
 # along with PYBOSSA.  If not, see <http://www.gnu.org/licenses/>.
 
-from flask import current_app
-from sqlalchemy import Integer, Boolean, Unicode, UnicodeText, Text
+from sqlalchemy import Integer, Boolean, Unicode, Float, UnicodeText, Text
+from sqlalchemy.schema import Column, ForeignKey
+from sqlalchemy.orm import relationship, backref
 from sqlalchemy.dialects.postgresql import JSONB, ARRAY
 from sqlalchemy.ext.mutable import MutableDict, MutableList
-from sqlalchemy.orm import relationship
-from sqlalchemy.schema import Column, ForeignKey
+from flask import current_app
 
 from pybossa.core import db, signer
 from pybossa.model import DomainObject, make_timestamp, make_uuid
-from pybossa.model.blogpost import Blogpost
-from pybossa.model.category import Category
 from pybossa.model.task import Task
 from pybossa.model.task_run import TaskRun
-
-project_to_user = db.Table(
-    'project_to_user',
-    db.Column('user_id', Integer, ForeignKey('user.id', ondelete="CASCADE"), primary_key=True),
-    db.Column('project_id', Integer, ForeignKey('project.id', ondelete="CASCADE"), primary_key=True)
-)
+from pybossa.model.category import Category
+from pybossa.model.blogpost import Blogpost
 
 
 class Project(db.Model, DomainObject):
@@ -85,79 +79,64 @@ class Project(db.Model, DomainObject):
     category = relationship(Category)
     blogposts = relationship(Blogpost, cascade='all, delete-orphan', backref='project')
     owners_ids = Column(MutableList.as_mutable(ARRAY(Integer)), default=list())
-    is_private = Column(Boolean, nullable=False, default=False)
-    users = relationship('User', secondary='project_to_user', backref='project')
 
+    def needs_password(self):
+        return self.get_passwd_hash() is not None
 
-def needs_password(self):
-    return self.get_passwd_hash() is not None
+    def get_passwd_hash(self):
+        return self.info.get('passwd_hash')
 
+    def get_passwd(self):
+        if self.needs_password():
+            return signer.loads(self.get_passwd_hash())
+        return None
 
-def get_passwd_hash(self):
-    return self.info.get('passwd_hash')
+    def set_password(self, password):
+        if len(password) > 1:
+            self.info['passwd_hash'] = signer.dumps(password)
+            return True
+        self.info['passwd_hash'] = None
+        return False
 
+    def check_password(self, password):
+        if self.needs_password():
+            return self.get_passwd() == password
+        return False
 
-def get_passwd(self):
-    if self.needs_password():
-        return signer.loads(self.get_passwd_hash())
-    return None
+    def has_autoimporter(self):
+        return self.get_autoimporter() is not None
 
+    def get_autoimporter(self):
+        return self.info.get('autoimporter')
 
-def set_password(self, password):
-    if len(password) > 1:
-        self.info['passwd_hash'] = signer.dumps(password)
-        return True
-    self.info['passwd_hash'] = None
-    return False
+    def set_autoimporter(self, new=None):
+        self.info['autoimporter'] = new
 
+    def delete_autoimporter(self):
+        del self.info['autoimporter']
 
-def check_password(self, password):
-    if self.needs_password():
-        return self.get_passwd() == password
-    return False
+    def has_presenter(self):
+        if current_app.config.get('DISABLE_TASK_PRESENTER') is True:
+            return True
+        else:
+            return self.info.get('task_presenter') not in ('', None)
 
+    @classmethod
+    def public_attributes(self):
+        """Return a list of public attributes."""
+        return ['id', 'description', 'info', 'n_tasks', 'n_volunteers', 'name',
+                'overall_progress', 'short_name', 'created', 'category_id',
+                'long_description', 'last_activity', 'last_activity_raw',
+                'n_task_runs', 'n_results', 'owner', 'updated', 'featured',
+                'owner_id', 'n_completed_tasks', 'n_blogposts', 'owners_ids']
 
-def has_autoimporter(self):
-    return self.get_autoimporter() is not None
-
-
-def get_autoimporter(self):
-    return self.info.get('autoimporter')
-
-
-def set_autoimporter(self, new=None):
-    self.info['autoimporter'] = new
-
-
-def delete_autoimporter(self):
-    del self.info['autoimporter']
-
-
-def has_presenter(self):
-    if current_app.config.get('DISABLE_TASK_PRESENTER') is True:
-        return True
-    else:
-        return self.info.get('task_presenter') not in ('', None)
-
-
-@classmethod
-def public_attributes(self):
-    """Return a list of public attributes."""
-    return ['id', 'description', 'info', 'n_tasks', 'n_volunteers', 'name',
-            'overall_progress', 'short_name', 'created', 'category_id',
-            'long_description', 'last_activity', 'last_activity_raw',
-            'n_task_runs', 'n_results', 'owner', 'updated', 'featured',
-            'owner_id', 'n_completed_tasks', 'n_blogposts', 'owners_ids',
-            'is_private']
-
-
-@classmethod
-def public_info_keys(self):
-    """Return a list of public info keys."""
-    default = ['container', 'thumbnail', 'thumbnail_url',
-               'task_presenter', 'tutorial', 'sched']
-    extra = current_app.config.get('PROJECT_INFO_PUBLIC_FIELDS')
-    if extra:
-        return list(set(default).union(set(extra)))
-    else:
-        return default
+    @classmethod
+    def public_info_keys(self):
+        """Return a list of public info keys."""
+        default = ['container', 'thumbnail', 'thumbnail_url',
+                   'task_presenter', 'tutorial', 'sched']
+        extra = current_app.config.get('PROJECT_INFO_PUBLIC_FIELDS')
+        if extra:
+            return list(set(default).union(set(extra)))
+        else:
+            return default
