@@ -413,7 +413,7 @@ def get_all_for_current_user(category):
     all_projects = get_all(category)
     current_app.logger.warning(f'uamaxua all projects retrieved for category "{category}": {all_projects}')
     user_id = None if current_user.is_anonymous else current_user.id
-    current_app.logger.warn('uamaxua current user get_all_for_current_user = {}', user_id)
+    current_app.logger.warning(f'uamaxua current user get_all_for_current_user = {user_id}')
     accessible_projects = [
         project for project in all_projects
         if not project['is_private'] or user_id in (project.get('private_users_ids') or [])
