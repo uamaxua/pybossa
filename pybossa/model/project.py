@@ -84,7 +84,7 @@ class Project(db.Model, DomainObject):
     category = relationship(Category)
     blogposts = relationship(Blogpost, cascade='all, delete-orphan', backref='project')
     owners_ids = Column(MutableList.as_mutable(ARRAY(Integer)), default=list())
-    is_restricted = Column(Boolean, nullable=False, default=False)
+    is_private = Column(Boolean, nullable=False, default=False)
     users = relationship('User', secondary='project_to_user', backref='project')
 
 def needs_password(self):
@@ -136,7 +136,7 @@ def needs_password(self):
                 'long_description', 'last_activity', 'last_activity_raw',
                 'n_task_runs', 'n_results', 'owner', 'updated', 'featured',
                 'owner_id', 'n_completed_tasks', 'n_blogposts', 'owners_ids',
-                'is_restricted']
+                'is_private']
 
     @classmethod
     def public_info_keys(self):
