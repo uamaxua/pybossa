@@ -32,6 +32,7 @@ from flask_login import login_required, current_user
 from flask_babel import gettext
 from flask_wtf.csrf import generate_csrf
 from rq import Queue
+from flask import current_app
 
 import pybossa.sched as sched
 
@@ -238,6 +239,7 @@ def draft(page):
     """Show the Draft projects"""
     order_by = request.args.get('orderby', None)
     desc = bool(request.args.get('desc', False))
+    current_app.logger.warn('uamaxua draft projects')
     return project_index(page, cached_projects.get_all_draft, 'draft',
                          False, True, order_by, desc)
 
