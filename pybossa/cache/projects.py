@@ -21,6 +21,7 @@ from pybossa.core import db, timeouts
 from pybossa.model.project import Project
 from pybossa.util import pretty_date
 from pybossa.cache import memoize, cache, delete_memoized, delete_cached
+from flask_login import current_user
 
 
 session = db.slave_session
@@ -374,7 +375,8 @@ def get_all(category):
     sql = text(
         '''SELECT project.id, project.name, project.short_name,
            project.description, project.info, project.created, project.updated,
-           project.category_id, project.featured, "user".fullname AS owner
+           project.category_id, project.featured, "user".fullname AS owner,
+           project.is_private, project.private_users_ids
            FROM "user", project
            LEFT OUTER JOIN category ON project.category_id=category.id
            WHERE
@@ -400,10 +402,20 @@ def get_all(category):
                        overall_progress=overall_progress(row.id),
                        n_tasks=n_tasks(row.id),
                        n_volunteers=n_volunteers(row.id),
-                       info=row.info)
+                       info=row.info,
+                       is_private=row.is_private,
+                       private_users_ids=row.private_users_ids)
         projects.append(Project().to_public_json(project))
     return projects
 
+def get_all_for_current_user(category):
+    all_projects = get_all(category)
+    user_id = None if current_user.is_anonymous else current_user.id
+    accessible_projects = [
+        project for project in all_projects
+        if user_id in project.get('private_users_ids', [])
+    ]
+    return accessible_projects
 
 def get(category, page=1, per_page=5):
     """Return a list of published projects with a pagination for a given category.

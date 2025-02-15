@@ -265,7 +265,8 @@ def project_cat_index(category, page):
     """Show Projects that belong to a given category"""
     order_by = request.args.get('orderby', None)
     desc = bool(request.args.get('desc', False))
-    return project_index(page, cached_projects.get_all, category, False, True,
+    current_app.logger.warn('uamaxua get all by category for current user')
+    return project_index(page, cached_projects.get_all_for_current_user, category, False, True,
                          order_by, desc)
 
 
