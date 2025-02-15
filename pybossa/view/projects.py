@@ -265,7 +265,7 @@ def project_cat_index(category, page):
     """Show Projects that belong to a given category"""
     order_by = request.args.get('orderby', None)
     desc = bool(request.args.get('desc', False))
-    lookup = _filter_by_user_access(cached_projects.get_all, category)
+    lookup = lambda cat: _filter_by_user_access(cached_projects.get_all, cat)
     return project_index(page, lookup, category, False, True,
                          order_by, desc)
 
