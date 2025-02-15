@@ -25,30 +25,31 @@ from pybossa.model.category import Category
 from pybossa.exc import WrongObjectError, DBIntegrityError
 from pybossa.cache import projects as cached_projects
 from pybossa.core import uploader
+from flask import current_app
 
 
 class ProjectRepository(Repository):
 
     # Methods for Project objects
     def get(self, id):
-        print("Project id get = " + str(id))
+        current_app.logger.info('Project id get = {}'.format(id))
         return self.db.session.query(Project).get(id)
 
     def get_by_shortname(self, short_name):
-        print("Project short name = " + short_name)
+        current_app.logger.info('Project short name = {}'.format(short_name))
         return self.db.session.query(Project).filter_by(short_name=short_name).first()
 
     def get_by(self, **attributes):
-        print("Project attributes =", attributes)
+        current_app.logger.info('Project attributes = {}'.format(attributes))
         return self.db.session.query(Project).filter_by(**attributes).first()
 
     def get_all(self):
-        print("Project get all")
+        current_app.logger.info('Project get all')
         return self.db.session.query(Project).all()
 
     def filter_by(self, limit=None, offset=0, yielded=False, last_id=None,
                   fulltextsearch=None, desc=False, **filters):
-        print("Project filters: ", limit, offset, yielded, last_id, fulltextsearch, desc, filters)
+        current_app.logger.info('Project filters: {}, {}, {}, {}, {}, {}, {}'.format(limit, offset, yielded, last_id, fulltextsearch, desc, filters))
         if filters.get('owner_id'):
             filters['owner_id'] = filters.get('owner_id')
         return self._filter_by(Project, limit, offset, yielded, last_id,
