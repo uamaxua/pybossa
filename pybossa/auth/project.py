@@ -40,7 +40,7 @@ class ProjectAuth(object):
     def _read(self, user, project=None):
         if project is not None and project.published is False:
             return self._only_admin_or_owner(user, project)
-        return True
+        return self._user_has_access(user, project)
 
     def _update(self, user, project):
         return self._only_admin_or_owner(user, project)
@@ -58,3 +58,12 @@ class ProjectAuth(object):
     def _only_admin_or_owner(self, user, project):
         return (not user.is_anonymous and
                 (user.id in project.owners_ids or user.admin))
+
+    def _user_has_access(self, user, project=None):
+        if project is not None and project.is_private is True:
+            user_id = None if user.is_anonymous else user.id
+            if user_id is None:
+                return False
+            if user_id not in (project.private_users_ids or []):
+                return False
+        return True
