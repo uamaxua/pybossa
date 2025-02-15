@@ -40,7 +40,15 @@ class HelpingMaterialAuth(object):
         return self._is_admin_or_owner(user, project)
 
     def _read(self, user, helpingmaterial=None, project_id=None):
-        return False
+        if helpingmaterial or project_id:
+            project = self._get_project(helpingmaterial, project_id)
+            if project:
+                return (project.published or self._is_admin_or_owner(user, project))
+            if user.is_anonymous or (helpingmaterial is None and project_id is None):
+                return False
+            return self._is_admin_or_owner(user, project)
+        else:
+            return True
 
     def _update(self, user, helpingmaterial, project_id=None):
         project = self._get_project(helpingmaterial, project_id)
