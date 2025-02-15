@@ -274,7 +274,9 @@ def _filter_by_user_access(lookup, category):
     user_id = None if current_user.is_anonymous else current_user.id
     accessible_projects = [
         project for project in all_projects
-        if not project['is_private'] or _is_admin_or_owner(current_user, project) or user_id in (project.get('private_users_ids') or [])
+        if not project['is_private']
+           or _is_admin_or_owner(current_user, project)
+           or user_id in (project.get('private_users_ids') or [])
     ]
     return accessible_projects
 

@@ -377,7 +377,7 @@ def get_all(category):
         '''SELECT project.id, project.name, project.short_name,
            project.description, project.info, project.created, project.updated,
            project.category_id, project.featured, "user".fullname AS owner,
-           project.is_private, project.private_users_ids
+           project.is_private, project.private_users_ids, project.owners_ids
            FROM "user", project
            LEFT OUTER JOIN category ON project.category_id=category.id
            WHERE
@@ -405,7 +405,8 @@ def get_all(category):
                        n_volunteers=n_volunteers(row.id),
                        info=row.info,
                        is_private=row.is_private,
-                       private_users_ids=row.private_users_ids)
+                       private_users_ids=row.private_users_ids,
+                       owners_ids=row.owners_ids)
         projects.append(Project().to_public_json(project))
     return projects
 
