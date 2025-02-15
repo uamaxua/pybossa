@@ -29,4 +29,4 @@ def upgrade():
 
 def downgrade():
     op.drop_table('project_to_user')
-    op.drop_column('projects', 'is_restricted')
+    op.drop_column('project', 'is_private')
