@@ -31,7 +31,7 @@ from pybossa.model.category import Category
 from pybossa.model.blogpost import Blogpost
 
 projects_to_users = db.Table(
-    'projects_to_users',
+    'project_to_user',
     db.Column('user_id', Integer, ForeignKey('user.id', ondelete="CASCADE"), primary_key=True),
     db.Column('project_id', Integer, ForeignKey('project.id', ondelete="CASCADE"), primary_key=True)
 )
@@ -85,7 +85,7 @@ class Project(db.Model, DomainObject):
     blogposts = relationship(Blogpost, cascade='all, delete-orphan', backref='project')
     owners_ids = Column(MutableList.as_mutable(ARRAY(Integer)), default=list())
     is_restricted = Column(Boolean, nullable=False, default=False)
-    users = relationship('User', secondary='projects_to_users', backref='projects')
+    users = relationship('User', secondary='project_to_user', backref='project')
 
 def needs_password(self):
         return self.get_passwd_hash() is not None
