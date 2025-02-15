@@ -30,7 +30,7 @@ from pybossa.model.category import Category
 from pybossa.model.task import Task
 from pybossa.model.task_run import TaskRun
 
-projects_to_users = db.Table(
+project_to_user = db.Table(
     'project_to_user',
     db.Column('user_id', Integer, ForeignKey('user.id', ondelete="CASCADE"), primary_key=True),
     db.Column('project_id', Integer, ForeignKey('project.id', ondelete="CASCADE"), primary_key=True)
