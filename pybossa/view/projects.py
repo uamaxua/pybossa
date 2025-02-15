@@ -265,10 +265,21 @@ def project_cat_index(category, page):
     """Show Projects that belong to a given category"""
     order_by = request.args.get('orderby', None)
     desc = bool(request.args.get('desc', False))
-    current_app.logger.warn('uamaxua get all by category for current user')
-    return project_index(page, cached_projects.get_all_for_current_user, category, False, True,
+    lookup = _filter_by_user_access(cached_projects.get_all, category)
+    return project_index(page, lookup, category, False, True,
                          order_by, desc)
 
+def _filter_by_user_access(lookup, category):
+    all_projects = lookup(category)
+    user_id = None if current_user.is_anonymous else current_user.id
+    accessible_projects = [
+        project for project in all_projects
+        if not project['is_private'] or _is_admin_or_owner(current_user, project) or user_id in (project.get('private_users_ids') or [])
+    ]
+    return accessible_projects
+
+def _is_admin_or_owner(user, project):
+    return not user.is_anonymous and (user.id in project.owners_ids or user.admin)
 
 @blueprint.route('/new', methods=['GET', 'POST'])
 @login_required
