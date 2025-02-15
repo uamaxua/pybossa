@@ -22,6 +22,7 @@ from pybossa.model.project import Project
 from pybossa.util import pretty_date
 from pybossa.cache import memoize, cache, delete_memoized, delete_cached
 from flask_login import current_user
+from flask import current_app
 
 
 session = db.slave_session
@@ -410,10 +411,12 @@ def get_all(category):
 
 def get_all_for_current_user(category):
     all_projects = get_all(category)
+    current_app.logger.warning(f'uamaxua all projects retrieved for category "{category}": {all_projects}')
     user_id = None if current_user.is_anonymous else current_user.id
+    current_app.logger.warn('uamaxua current user get_all_for_current_user = {}', user_id)
     accessible_projects = [
         project for project in all_projects
-        if user_id in project.get('private_users_ids', [])
+        if not project['is_private'] or user_id in (project.get('private_users_ids') or [])
     ]
     return accessible_projects
 
