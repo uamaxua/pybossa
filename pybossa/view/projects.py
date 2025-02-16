@@ -239,7 +239,6 @@ def draft(page):
     """Show the Draft projects"""
     order_by = request.args.get('orderby', None)
     desc = bool(request.args.get('desc', False))
-    current_app.logger.warn('uamaxua draft projects')
     lookup = lambda cat: _filter_by_user_access(cached_projects.get_all_draft, cat)
     return project_index(page, lookup, 'draft',
                          False, True, order_by, desc)
