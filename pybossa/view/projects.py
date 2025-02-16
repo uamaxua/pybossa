@@ -169,8 +169,8 @@ def index(page):
     order_by = request.args.get('orderby', None)
     desc = bool(request.args.get('desc', False))
     if cached_projects.n_count('featured') > 0:
-        return project_index(page, cached_projects.get_all_featured,
-                             'featured', True, False, order_by, desc)
+        lookup = lambda cat: _filter_by_user_access(cached_projects.get_all_featured, cat)
+        return project_index(page, lookup,'featured', True, False, order_by, desc)
     else:
         categories = cached_cat.get_all()
         cat_short_name = categories[0].short_name
@@ -240,7 +240,8 @@ def draft(page):
     order_by = request.args.get('orderby', None)
     desc = bool(request.args.get('desc', False))
     current_app.logger.warn('uamaxua draft projects')
-    return project_index(page, cached_projects.get_all_draft, 'draft',
+    lookup = lambda cat: _filter_by_user_access(cached_projects.get_all_draft, cat)
+    return project_index(page, lookup, 'draft',
                          False, True, order_by, desc)
 
 

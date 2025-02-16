@@ -252,7 +252,8 @@ def get_all_featured(category=None):
     sql = text(
         '''SELECT project.id, project.name, project.short_name, project.info,
                project.created, project.updated, project.description,
-               "user".fullname AS owner
+               "user".fullname AS owner,
+               project.is_private, project.private_users_ids, project.owners_ids
            FROM project, "user"
            WHERE project.featured=true
            AND "user".id=project.owner_id
@@ -271,7 +272,10 @@ def get_all_featured(category=None):
                        overall_progress=overall_progress(row.id),
                        n_tasks=n_tasks(row.id),
                        n_volunteers=n_volunteers(row.id),
-                       info=row.info)
+                       info=row.info,
+                       is_private=row.is_private,
+                       private_users_ids=row.private_users_ids,
+                       owners_ids=row.owners_ids)
         projects.append(Project().to_public_json(project))
     return projects
 
@@ -313,7 +317,8 @@ def get_all_draft(category=None):
     sql = text(
         '''SELECT project.id, project.name, project.short_name, project.created,
             project.description, project.info, project.updated,
-            "user".fullname AS owner
+            "user".fullname AS owner,
+            project.is_private, project.private_users_ids, project.owners_ids
            FROM "user", project
            WHERE project.owner_id="user".id
            AND "user".restrict=false
@@ -332,7 +337,10 @@ def get_all_draft(category=None):
                        overall_progress=overall_progress(row.id),
                        n_tasks=n_tasks(row.id),
                        n_volunteers=n_volunteers(row.id),
-                       info=row.info)
+                       info=row.info,
+                       is_private=row.is_private,
+                       private_users_ids=row.private_users_ids,
+                       owners_ids=row.owners_ids)
         projects.append(Project().to_public_json(project))
     return projects
 
